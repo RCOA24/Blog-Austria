@@ -73,8 +73,8 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
     <article 
       className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full hover:-translate-y-1"
     >
-      <div className="p-6 flex-1">
-        <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white line-clamp-2">
+      <div className="p-6 flex-1 cursor-pointer" onClick={() => navigate(`/post/${post.id}`)}>
+        <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
           {post.title}
         </h2>
         <p className="text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 leading-relaxed whitespace-pre-wrap">
