@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import supabase from '../supabaseClient';
 import { setLoading, setError } from '../features/blogs/blogsSlice';
+import { toast } from 'react-toastify';
 
 const EditPost = () => {
     const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ const EditPost = () => {
             if (data) {
                 // Check authorization
                 if (user && data.user_id !== user.id) {
+                    toast.error('You are not authorized to edit this post.');
                     navigate('/'); // Not authorized
                     return;
                 }
@@ -35,6 +37,7 @@ const EditPost = () => {
             }
              if (error) {
                  console.error(error);
+                 toast.error('Failed to load post.');
              }
 
             setIsLoadingPost(false);
@@ -56,9 +59,11 @@ const EditPost = () => {
                 .eq('id', id);
 
             if (error) throw error;
+            toast.success('Post updated successfully');
             navigate('/');
         } catch (err: any) {
             dispatch(setError(err.message));
+            toast.error(err.message || 'Failed to update post');
         } finally {
             dispatch(setLoading(false));
         }

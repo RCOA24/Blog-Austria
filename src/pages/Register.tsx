@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setLoading, setError, setUser } from '../features/auth/authSlice';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -27,11 +28,14 @@ const Register = () => {
 
       if (data.user) {
         dispatch(setUser(data.user));
+        toast.success(`Account created successfully! Welcome.`);
         // Redirect to home since email confirmation is disabled per requirements
         navigate('/');
       }
     } catch (err: any) {
-      dispatch(setError(err.message || 'Registration failed'));
+      const errorMessage = err.message || 'Registration failed';
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
     } finally {
       dispatch(setLoading(false));
     }

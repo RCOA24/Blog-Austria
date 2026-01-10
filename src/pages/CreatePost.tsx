@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import supabase from '../supabaseClient';
 import { setLoading, setError } from '../features/blogs/blogsSlice';
+import { toast } from 'react-toastify';
 
 const CreatePost = () => {
   const [title, setTitle] = useState('');
@@ -19,12 +20,16 @@ const CreatePost = () => {
     e.preventDefault();
     
     if (!user) {
-      setSubmitError('You must be logged in to create a post.');
+      const msg = 'You must be logged in to create a post.';
+      setSubmitError(msg);
+      toast.error(msg);
       return;
     }
 
     if (!title.trim() || !content.trim()) {
-      setSubmitError('Title and content are required.');
+      const msg = 'Title and content are required.';
+      setSubmitError(msg);
+      toast.warn(msg);
       return;
     }
 
@@ -47,14 +52,17 @@ const CreatePost = () => {
 
       if (error) throw error;
 
+      toast.success('Post created successfully!');
       // Successful - navigate home
       // We don't need to manually fetch here because Home page useEffect will run on mount
       navigate('/');
       
     } catch (err: any) {
       console.error('Error creating post:', err);
-      setSubmitError(err.message || 'Failed to create post');
+      const msg = err.message || 'Failed to create post';
+      setSubmitError(msg);
       dispatch(setError(err.message));
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
       dispatch(setLoading(false));

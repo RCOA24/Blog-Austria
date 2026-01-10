@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from '../app/hooks';
 import { logout } from '../features/auth/authSlice';
 import supabase from '../supabaseClient';
 import { Sun, Moon, LogOut, PenSquare, User as UserIcon } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -27,6 +28,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     dispatch(logout());
+    toast.info('Logged out successfully');
     navigate('/login');
   };
 
@@ -36,9 +38,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-gray-800 dark:text-white transition-colors">
             <span className="bg-blue-600 text-white rounded-lg p-1.5 ">
-              BA
+              SS
             </span>
-            <span>BlogApp</span>
+            <span>Simply Stated</span>
           </Link>
           
           <div className="flex items-center space-x-4">

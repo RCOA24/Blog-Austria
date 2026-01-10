@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import CreatePost from './pages/CreatePost';
 import EditPost from './pages/EditPost';
 import './App.css';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -32,6 +33,7 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <Navbar />
+        <ToastContainer position="bottom-right" autoClose={3000} theme="colored" />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

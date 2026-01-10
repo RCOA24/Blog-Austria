@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setLoading, setError, setUser } from '../features/auth/authSlice';
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -27,10 +28,13 @@ const Login = () => {
 
       if (data.user) {
         dispatch(setUser(data.user));
+        toast.success(`Welcome back, ${data.user.email}!`);
         navigate('/');
       }
     } catch (err: any) {
-      dispatch(setError(err.message || 'Login failed'));
+      const errorMessage = err.message || 'Login failed';
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
     } finally {
       dispatch(setLoading(false));
     }

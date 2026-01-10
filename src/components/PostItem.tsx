@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from '../app/hooks';
 import supabase from '../supabaseClient';
 import { deletePost, type Post } from '../features/blogs/blogsSlice';
 import { Calendar, Edit2, Trash2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface PostItemProps {
   post: Post;
@@ -30,9 +31,10 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       if (error) throw error;
 
       dispatch(deletePost(post.id));
+      toast.success('Post deleted successfully');
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert('Failed to delete post');
+      toast.error('Failed to delete post');
     } finally {
       setIsDeleting(false);
     }
