@@ -18,6 +18,29 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
 
   const isAuthor = user?.id === post.user_id;
 
+  // Helper to extract first image and strip markdown
+  const processContent = (content: string) => {
+    // Extract first image
+    const imageMatch = content.match(/!\[.*?\]\((.*?)\)/);
+    const coverImage = imageMatch ? imageMatch[1] : null;
+
+    // Strip markdown for preview text
+    const plainText = content
+      .replace(/!\[.*?\]\(.*?\)/g, '') // Remove images
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links but keep text
+      .replace(/#{1,6}\s?/g, '') // Remove headers
+      .replace(/(\*\*|__)(.*?)\1/g, '$2') // Remove bold
+      .replace(/(\*|_)(.*?)\1/g, '$2') // Remove italic
+      .replace(/`{3}[\s\S]*?`{3}/g, '') // Remove code blocks
+      .replace(/`(.+?)`/g, '$1') // Remove inline code
+      .replace(/>\s?/g, '') // Remove blockquotes
+      .trim();
+
+    return { coverImage, plainText };
+  };
+
+  const { coverImage, plainText } = processContent(post.content || '');
+
   const handleDelete = () => {
     toast(
       ({ closeToast }) => (
@@ -73,12 +96,20 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
     <article 
       className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full hover:-translate-y-1"
     >
+      {coverImage && (
+        <div 
+          className="h-48 w-full bg-cover bg-center cursor-pointer border-b border-gray-200 dark:border-gray-700"
+          style={{ backgroundImage: `url(${coverImage})` }}
+          onClick={() => navigate(`/post/${post.id}`)}
+        />
+      )}
+
       <div className="p-6 flex-1 cursor-pointer" onClick={() => navigate(`/post/${post.id}`)}>
         <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
           {post.title}
         </h2>
         <p className="text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 leading-relaxed whitespace-pre-wrap">
-          {post.content}
+          {plainText}
         </p>
       </div>
       

@@ -124,8 +124,11 @@ const PostDetail = () => {
                 </header>
 
                 {/* Article Content */}
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                    <MDEditor.Markdown source={post.content} />
+                <div data-color-mode="light" className="dark:hidden">
+                     <MDEditor.Markdown source={post.content} style={{ backgroundColor: 'transparent', color: '#1f2937' }} />
+                </div>
+                <div data-color-mode="dark" className="hidden dark:block">
+                     <MDEditor.Markdown source={post.content} style={{ backgroundColor: 'transparent', color: '#e5e7eb' }} />
                 </div>
 
                 {/* Article Footer */}
