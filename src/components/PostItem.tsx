@@ -18,26 +18,56 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
 
   const isAuthor = user?.id === post.user_id;
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+  const handleDelete = () => {
+    toast(
+      ({ closeToast }) => (
+        <div className="min-w-[200px]">
+          <p className="mb-3 text-sm font-medium text-gray-800">
+            Are you sure you want to delete this post?
+          </p>
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={closeToast}
+              className="px-3 py-1.5 text-xs rounded border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                closeToast();
+                setIsDeleting(true);
+                try {
+                  const { error } = await supabase
+                    .from('posts')
+                    .delete()
+                    .eq('id', post.id);
 
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
+                  if (error) throw error;
 
-      if (error) throw error;
-
-      dispatch(deletePost(post.id));
-      toast.success('Post deleted successfully');
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      toast.error('Failed to delete post');
-    } finally {
-      setIsDeleting(false);
-    }
+                  dispatch(deletePost(post.id));
+                  toast.success('Post deleted successfully');
+                } catch (error) {
+                  console.error('Error deleting post:', error);
+                  toast.error('Failed to delete post');
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-700 transition shadow-sm"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false,
+        closeOnClick: false,
+        draggable: false,
+        hideProgressBar: true,
+      }
+    );
   };
 
   const handleEdit = () => {

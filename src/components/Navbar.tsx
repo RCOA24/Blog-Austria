@@ -37,9 +37,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-gray-800 dark:text-white transition-colors">
-            <span className="bg-blue-600 text-white rounded-lg p-1.5 ">
-              SS
-            </span>
+            <img 
+              src="/SimplyStated.png" 
+              alt="Simply Stated Logo" 
+              className="w-10 h-10 rounded-lg object-contain" 
+            />
             <span>Simply Stated</span>
           </Link>
           

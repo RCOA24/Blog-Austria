@@ -1,128 +1,181 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import supabase from '../supabaseClient';
 import { setPosts, setLoading, setError, setPagination } from '../features/blogs/blogsSlice';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PostItem from './PostItem';
 
-const PAGE_SIZE = 6;
+const DEFAULT_PAGE_SIZE = 6;
 
 const BlogList = () => {
   const dispatch = useAppDispatch();
-  const { posts, loading, error,totalPages } = useAppSelector((state) => state.blogs);
+  const { posts, loading,totalPages } = useAppSelector((s) => s.blogs);
+
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [query, setQuery] = useState('');
+  const [sortDesc, setSortDesc] = useState(true);
+
+  const fromTo = useMemo(() => {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    return { from, to };
+  }, [page, pageSize]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       dispatch(setLoading(true));
-      
-      const from = (page - 1) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
 
-      const { data, count, error } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact' })
-        .range(from, to)
-        .order('created_at', { ascending: false });
+      try {
+        let builder = supabase
+          .from('posts')
+          .select('*', { count: 'exact' })
+          .range(fromTo.from, fromTo.to);
 
-      if (error) {
-        dispatch(setError(error.message));
-      } else {
-        dispatch(setPosts(data || []));
-        if (count !== null) {
-          dispatch(setPagination({
-            currentPage: page,
-            totalPages: Math.ceil(count / PAGE_SIZE)
-          }));
+        // server-side search across title/content if query provided
+        if (query.trim()) {
+          const q = query.replace(/%/g, '\\%');
+          builder = builder.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
         }
+
+        builder = builder.order('created_at', { ascending: !sortDesc });
+
+        const { data, count, error: err } = await builder;
+
+        if (err) {
+          dispatch(setError(err.message));
+        } else {
+          dispatch(setPosts(data || []));
+          const total = count ?? (data ? data.length : 0);
+          dispatch(setPagination({ currentPage: page, totalPages: Math.max(1, Math.ceil(total / pageSize)) }));
+        }
+      } catch (fetchErr: any) {
+        dispatch(setError(fetchErr.message || 'Failed to fetch posts'));
+      } finally {
+        dispatch(setLoading(false));
       }
-      dispatch(setLoading(false));
     };
 
     fetchPosts();
-  }, [dispatch, page]);
+  }, [dispatch, page, pageSize, query, sortDesc, fromTo.from, fromTo.to]);
 
-  const handlePrevious = () => {
-    if (page > 1) {
-      setPage((prev) => prev - 1);
-    }
-  };
+  // reset page when pageSize or query changes
+  useEffect(() => setPage(1), [pageSize, query]);
 
-  const handleNext = () => {
-    if (page < totalPages) {
-      setPage((prev) => prev + 1);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-10 bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <p className="text-red-600 dark:text-red-400">Error: {error}</p>
-      </div>
-    );
-  }
+  const handlePrevious = () => setPage((p) => Math.max(1, p - 1));
+  const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <div className="space-y-8">
-      {posts.length === 0 ? (
-        <div className="text-center py-20 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <p className="text-gray-600 dark:text-gray-300 text-lg">No posts found.</p>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <PostItem key={post.id} post={post} />
-          ))}
-        </div>
-      )}
+    <section className="space-y-6">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <label htmlFor="search" className="sr-only">Search posts</label>
+          <input
+            id="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title or content..."
+            className="w-full sm:w-80 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+          />
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-4 pt-8">
+          <select
+            aria-label="Sort order"
+            value={sortDesc ? 'desc' : 'asc'}
+            onChange={(e) => setSortDesc(e.target.value === 'desc')}
+            className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+          >
+            <option value="desc">Newest</option>
+            <option value="asc">Oldest</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Showing</div>
+          <select
+            aria-label="Items per page"
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+          >
+            <option value={6}>6</option>
+            <option value={12}>12</option>
+            <option value={24}>24</option>
+          </select>
+
+          <div className="text-sm text-gray-600 dark:text-gray-300">
+            Page {page} / {totalPages}
+          </div>
+        </div>
+      </header>
+
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
+        {loading ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: pageSize }).map((_, i) => (
+              <div key={i} className="animate-pulse bg-gray-100 dark:bg-gray-700 rounded-xl p-6 h-48" />
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="py-12 text-center">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No posts found</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Try adjusting your search or create the first post.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <PostItem key={post.id} post={post} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <footer className="flex items-center justify-between">
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          {/* compute visible range */}
+          Showing {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, (totalPages || 1) * pageSize)} of {(totalPages || 1) * pageSize}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setPage(1)}
+            disabled={page === 1}
+            aria-label="First page"
+            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+          >
+            First
+          </button>
+
           <button
             onClick={handlePrevious}
             disabled={page === 1}
-            className={`
-              flex items-center px-4 py-2 rounded-lg border font-medium transition-all duration-200
-              ${page === 1 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200 dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700' 
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:border-gray-400 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700'
-              }
-            `}
+            aria-label="Previous page"
+            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 flex items-center gap-2"
           >
-            <ChevronLeft className="w-5 h-5 mr-1" />
-            Previous
+            <ChevronLeft /> Prev
           </button>
-          
-          <span className="text-gray-600 dark:text-gray-300 font-medium">
-            Page {page} of {totalPages}
-          </span>
-          
+
+          <div className="text-sm text-gray-700 dark:text-gray-200">Page {page} of {totalPages}</div>
+
           <button
             onClick={handleNext}
             disabled={page === totalPages}
-            className={`
-              flex items-center px-4 py-2 rounded-lg border font-medium transition-all duration-200
-              ${page === totalPages 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200 dark:bg-gray-800 dark:text-gray-600 dark:border-gray-700' 
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300 hover:border-gray-400 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700'
-              }
-            `}
+            aria-label="Next page"
+            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 flex items-center gap-2"
           >
-            Next
-            <ChevronRight className="w-5 h-5 ml-1" />
+            Next <ChevronRight />
+          </button>
+
+          <button
+            onClick={() => setPage(totalPages)}
+            disabled={page === totalPages}
+            aria-label="Last page"
+            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+          >
+            Last
           </button>
         </div>
-      )}
-    </div>
+      </footer>
+    </section>
   );
 };
 
