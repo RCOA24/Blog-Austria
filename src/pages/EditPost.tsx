@@ -74,7 +74,7 @@ const EditPost = () => {
     return (
         <div className="container mx-auto px-4 py-8 max-w-2xl">
             <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Edit Post</h1>
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
                     <input

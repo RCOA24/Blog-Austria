@@ -231,6 +231,27 @@ For easier testing during development:
 1. Go to **Authentication → Providers → Email**
 2. Toggle **OFF** "Confirm Email"
 
+**Step 4: Enable Account Deletion (Optional)**
+
+To allow users to delete their own accounts from the application, run this SQL function in the Supabase SQL Editor:
+
+```sql
+-- Create a secure RPC function to allow users to delete their own account
+create or replace function delete_user_account()
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  -- 1. Delete user's posts first (to satisfy foreign key constraints)
+  delete from public.posts where user_id = auth.uid();
+  
+  -- 2. Delete the user from auth.users
+  delete from auth.users where id = auth.uid();
+end;
+$$;
+```
+
 > ⚠️ **Production Note:** Re-enable email confirmation for production deployments
 
 ---

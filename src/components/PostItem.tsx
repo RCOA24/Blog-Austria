@@ -76,7 +76,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
 
   return (
     <article 
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col h-full"
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full hover:-translate-y-1"
     >
       <div className="p-6 flex-1">
         <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white line-clamp-2">

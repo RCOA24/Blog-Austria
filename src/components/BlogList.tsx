@@ -75,14 +75,14 @@ const BlogList = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by title or content..."
-            className="w-full sm:w-80 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            className="w-full sm:w-80 px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
 
           <select
             aria-label="Sort order"
             value={sortDesc ? 'desc' : 'asc'}
             onChange={(e) => setSortDesc(e.target.value === 'desc')}
-            className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            className="px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
           >
             <option value="desc">Newest</option>
             <option value="asc">Oldest</option>
@@ -90,12 +90,12 @@ const BlogList = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-sm text-gray-600 dark:text-gray-300">Showing</div>
+          <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">Showing</div>
           <select
             aria-label="Items per page"
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+            className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
           >
             <option value={6}>6</option>
             <option value={12}>12</option>
@@ -108,15 +108,15 @@ const BlogList = () => {
         </div>
       </header>
 
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
+      <div className="min-h-[200px]">
         {loading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: pageSize }).map((_, i) => (
-              <div key={i} className="animate-pulse bg-gray-100 dark:bg-gray-700 rounded-xl p-6 h-48" />
+              <div key={i} className="animate-pulse bg-white dark:bg-gray-800 rounded-xl p-6 h-64 shadow-md border border-gray-200 dark:border-gray-700" />
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="py-12 text-center">
+          <div className="py-20 text-center bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No posts found</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Try adjusting your search or create the first post.</p>
           </div>
