@@ -63,17 +63,17 @@ const CreatePost = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Create New Post</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white transition-colors">Create New Post</h1>
       
       {submitError && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+        <div className="mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 px-4 py-3 rounded">
           {submitError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-md">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-colors duration-300">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Title
           </label>
           <input
@@ -81,14 +81,14 @@ const CreatePost = () => {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
             placeholder="Enter post title"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Content
           </label>
           <textarea
@@ -96,7 +96,7 @@ const CreatePost = () => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={6}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-y"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-y"
             placeholder="Write your post content here..."
             required
           />
@@ -106,7 +106,7 @@ const CreatePost = () => {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="mr-4 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="mr-4 px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -122,5 +122,6 @@ const CreatePost = () => {
     </div>
   );
 };
+
 
 export default CreatePost;
