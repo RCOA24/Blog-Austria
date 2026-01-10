@@ -42,8 +42,11 @@ const blogsSlice = createSlice({
       state.error = action.payload;
       state.loading = false;
     },
+    deletePost: (state, action: PayloadAction<string>) => {
+      state.posts = state.posts.filter((post) => post.id !== action.payload);
+    },
   },
 });
 
-export const { setPosts, setPagination, setLoading, setError } = blogsSlice.actions;
+export const { setPosts, setPagination, setLoading, setError, deletePost } = blogsSlice.actions;
 export default blogsSlice.reducer;

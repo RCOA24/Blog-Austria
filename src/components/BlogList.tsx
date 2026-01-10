@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import supabase from '../supabaseClient';
 import { setPosts, setLoading, setError, setPagination } from '../features/blogs/blogsSlice';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import PostItem from './PostItem';
 
 const PAGE_SIZE = 6;
 
@@ -78,29 +79,7 @@ const BlogList = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
-            <article 
-              key={post.id} 
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col"
-            >
-              <div className="p-6 flex-1">
-                <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  {post.title}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 line-clamp-3 mb-4 leading-relaxed">
-                  {post.content}
-                </p>
-              </div>
-              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                <Calendar className="w-4 h-4 mr-2" />
-                <time dateTime={post.created_at}>
-                  {new Date(post.created_at).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </time>
-              </div>
-            </article>
+            <PostItem key={post.id} post={post} />
           ))}
         </div>
       )}
