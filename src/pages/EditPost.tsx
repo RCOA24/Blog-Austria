@@ -5,6 +5,8 @@ import { setLoading, setError } from '../features/blogs/blogsSlice';
 import { toast } from 'react-toastify';
 import { blogService } from '../services/blogService';
 import { Save, Eye, EyeOff, FileText, Hash, AlertCircle, CheckCircle } from 'lucide-react';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
 
 const EditPost = () => {
     const { id } = useParams<{ id: string }>();
@@ -214,24 +216,24 @@ const EditPost = () => {
                                                 Post Content *
                                             </label>
                                             <div className="relative">
-                                                <textarea
-                                                    id="content"
+                                                <MDEditor
                                                     value={content}
-                                                    onChange={(e) => {
-                                                        setContent(e.target.value);
+                                                    onChange={(val) => {
+                                                        setContent(val || '');
                                                         if (validationErrors.content) {
                                                             setValidationErrors(prev => ({ ...prev, content: undefined }));
                                                         }
                                                     }}
-                                                    rows={12}
-                                                    className={`w-full px-4 py-3 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-y ${
+                                                    preview="edit"
+                                                    hideToolbar={false}
+                                                    visibleDragbar={false}
+                                                    className={`w-full border rounded-lg ${
                                                         validationErrors.content
                                                             ? 'border-red-300 dark:border-red-600'
                                                             : 'border-gray-300 dark:border-gray-600'
                                                     }`}
-                                                    placeholder="Write your post content here..."
                                                 />
-                                                <div className="absolute right-3 bottom-3 text-sm text-gray-400 dark:text-gray-500 flex items-center gap-4">
+                                                <div className="absolute right-3 bottom-3 text-sm text-gray-400 dark:text-gray-500 flex items-center gap-4 z-10">
                                                     <span className="flex items-center gap-1">
                                                         <Hash className="h-3 w-3" />
                                                         {wordCount} words
@@ -289,9 +291,7 @@ const EditPost = () => {
                                         )}
                                         {content ? (
                                             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-                                                <div className="whitespace-pre-wrap text-gray-900 dark:text-white leading-relaxed">
-                                                    {content}
-                                                </div>
+                                                <MDEditor.Markdown source={content} />
                                             </div>
                                         ) : (
                                             <div className="text-center py-16 text-gray-500 dark:text-gray-400">
@@ -316,7 +316,7 @@ const EditPost = () => {
                             <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                    Review your title for clarity
+                                    Use Markdown for formatting (bold, italic, links, etc.)
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />

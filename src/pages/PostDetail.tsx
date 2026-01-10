@@ -5,6 +5,8 @@ import { blogService } from '../services/blogService';
 import type { Post } from '../features/blogs/blogsSlice';
 import { Calendar, User, ArrowLeft, Edit2, Share2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import MDEditor from '@uiw/react-md-editor';
+import '@uiw/react-md-editor/markdown-editor.css';
 
 const PostDetail = () => {
     const { id } = useParams<{ id: string }>();
@@ -123,9 +125,7 @@ const PostDetail = () => {
 
                 {/* Article Content */}
                 <div className="prose prose-lg dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
-                        {post.content}
-                    </div>
+                    <MDEditor.Markdown source={post.content} />
                 </div>
 
                 {/* Article Footer */}
