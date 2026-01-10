@@ -53,7 +53,7 @@ const BlogList = () => {
   return (
     <section className="space-y-6">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row w-full sm:w-auto items-stretch sm:items-center gap-3">
           <label htmlFor="search" className="sr-only">Search posts</label>
           <input
             id="search"
@@ -74,7 +74,7 @@ const BlogList = () => {
           </select>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
           <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">Showing</div>
           <select
             aria-label="Items per page"
@@ -114,13 +114,13 @@ const BlogList = () => {
         )}
       </div>
 
-      <footer className="flex items-center justify-between">
-        <div className="text-sm text-gray-600 dark:text-gray-300">
+      <footer className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-sm text-gray-600 dark:text-gray-300 text-center sm:text-left">
           {/* compute visible range */}
           Showing {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, (totalPages || 1) * pageSize)} of {(totalPages || 1) * pageSize}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap justify-center gap-2">
           <button
             onClick={() => setPage(1)}
             disabled={page === 1}
