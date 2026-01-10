@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import supabase from '../supabaseClient';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setLoading, setError, setUser } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, UserPlus, LogIn, ArrowLeft, Check, X, User } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle, UserPlus, Check, X, ArrowLeft, LogIn } from 'lucide-react';
+import { authService } from '../services/authService';
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -79,20 +79,10 @@ const Register = () => {
     dispatch(setError(null));
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            username: username.trim(),
-          },
-        },
-      });
+      const { user } = await authService.register(email.trim(), password, username.trim());
 
-      if (error) throw error;
-
-      if (data.user) {
-        dispatch(setUser(data.user));
+      if (user) {
+        dispatch(setUser(user));
         toast.success(`Account created successfully! Welcome.`);
         // Redirect to home since email confirmation is disabled per requirements
         navigate('/');

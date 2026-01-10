@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-import supabase from '../supabaseClient';
+// import supabase from '../supabaseClient';
 import { setPosts, setLoading, setError, setPagination } from '../features/blogs/blogsSlice';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PostItem from './PostItem';
+
+import { blogService } from '../services/blogService';
 
 const DEFAULT_PAGE_SIZE = 6;
 
@@ -16,39 +18,22 @@ const BlogList = () => {
   const [query, setQuery] = useState('');
   const [sortDesc, setSortDesc] = useState(true);
 
-  const fromTo = useMemo(() => {
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-    return { from, to };
-  }, [page, pageSize]);
-
   useEffect(() => {
     const fetchPosts = async () => {
       dispatch(setLoading(true));
 
       try {
-        let builder = supabase
-          .from('posts')
-          .select('*', { count: 'exact' })
-          .range(fromTo.from, fromTo.to);
+        const { data, count } = await blogService.getPosts({
+            page, 
+            pageSize, 
+            query, 
+            sortDesc
+        });
 
-        // server-side search across title/content if query provided
-        if (query.trim()) {
-          const q = query.replace(/%/g, '\\%');
-          builder = builder.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
-        }
-
-        builder = builder.order('created_at', { ascending: !sortDesc });
-
-        const { data, count, error: err } = await builder;
-
-        if (err) {
-          dispatch(setError(err.message));
-        } else {
-          dispatch(setPosts(data || []));
-          const total = count ?? (data ? data.length : 0);
-          dispatch(setPagination({ currentPage: page, totalPages: Math.max(1, Math.ceil(total / pageSize)) }));
-        }
+        dispatch(setPosts(data));
+        const total = count ?? (data ? data.length : 0);
+        dispatch(setPagination({ currentPage: page, totalPages: Math.max(1, Math.ceil(total / pageSize)) }));
+        
       } catch (fetchErr: any) {
         dispatch(setError(fetchErr.message || 'Failed to fetch posts'));
       } finally {
@@ -57,7 +42,7 @@ const BlogList = () => {
     };
 
     fetchPosts();
-  }, [dispatch, page, pageSize, query, sortDesc, fromTo.from, fromTo.to]);
+  }, [dispatch, page, pageSize, query, sortDesc]);
 
   // reset page when pageSize or query changes
   useEffect(() => setPage(1), [pageSize, query]);

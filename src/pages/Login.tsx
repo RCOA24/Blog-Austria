@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import supabase from '../supabaseClient';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setLoading, setError, setUser } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, LogIn, UserPlus, ArrowRight } from 'lucide-react';
+import { authService } from '../services/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -48,16 +48,11 @@ const Login = () => {
     dispatch(setError(null));
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const { user } = await authService.login(email.trim(), password);
 
-      if (error) throw error;
-
-      if (data.user) {
-        dispatch(setUser(data.user));
-        const username = data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User';
+      if (user) {
+        dispatch(setUser(user));
+        const username = user.user_metadata?.username || user.email?.split('@')[0] || 'User';
         toast.success(`Welcome back, ${username}!`);
         navigate('/');
       }

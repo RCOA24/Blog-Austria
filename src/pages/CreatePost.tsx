@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-import supabase from '../supabaseClient';
 import { setLoading, setError } from '../features/blogs/blogsSlice';
 import { toast } from 'react-toastify';
 import { Save, Eye, EyeOff, FileText, Hash, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { blogService } from '../services/blogService';
 
 interface Draft {
   title: string;
@@ -117,19 +117,12 @@ const CreatePost = () => {
 
       const username = user.user_metadata?.username || user.email?.split('@')[0] || 'Anonymous';
 
-      const { error } = await supabase
-        .from('posts')
-        .insert([
-          {
-            title: title.trim(),
-            content: content.trim(),
-            user_id: user.id,
-            author_name: username
-          },
-        ])
-        .select();
-
-      if (error) throw error;
+      await blogService.createPost({
+        title: title.trim(),
+        content: content.trim(),
+        user_id: user.id,
+        author_name: username
+      });
 
       // Clear draft after successful publish
       const draftKey = `blog-draft-${user.id}`;

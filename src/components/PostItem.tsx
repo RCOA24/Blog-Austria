@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-import supabase from '../supabaseClient';
 import { deletePost, type Post } from '../features/blogs/blogsSlice';
 import { Calendar, Edit2, Trash2, User } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { blogService } from '../services/blogService';
 
 interface PostItemProps {
   post: Post;
@@ -37,12 +37,7 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
                 closeToast();
                 setIsDeleting(true);
                 try {
-                  const { error } = await supabase
-                    .from('posts')
-                    .delete()
-                    .eq('id', post.id);
-
-                  if (error) throw error;
+                  await blogService.deletePost(post.id);
 
                   dispatch(deletePost(post.id));
                   toast.success('Post deleted successfully');
