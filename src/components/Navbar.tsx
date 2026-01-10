@@ -71,7 +71,7 @@ const Navbar = () => {
                 <div className="flex items-center space-x-3 border-l border-gray-200 dark:border-gray-700 pl-4">
                   <div className="flex flex-col text-right hidden md:flex">
                     <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {user.email?.split('@')[0]}
+                      {user.user_metadata?.username || user.email?.split('@')[0]}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                        Author

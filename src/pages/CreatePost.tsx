@@ -115,6 +115,8 @@ const CreatePost = () => {
       setSubmitError(null);
       dispatch(setLoading(true));
 
+      const username = user.user_metadata?.username || user.email?.split('@')[0] || 'Anonymous';
+
       const { error } = await supabase
         .from('posts')
         .insert([
@@ -122,6 +124,7 @@ const CreatePost = () => {
             title: title.trim(),
             content: content.trim(),
             user_id: user.id,
+            author_name: username
           },
         ])
         .select();
@@ -196,7 +199,7 @@ const CreatePost = () => {
               )}
               <button
                 onClick={() => setIsPreview(!isPreview)}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white"
               >
                 {isPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 {isPreview ? 'Edit' : 'Preview'}
@@ -252,7 +255,7 @@ const CreatePost = () => {
                           placeholder="Enter an engaging title for your post..."
                           maxLength={200}
                         />
-                        <div className="absolute right-3 top-3 text-sm text-gray-400">
+                        <div className="absolute right-3 top-3 text-sm text-gray-400 dark:text-gray-500">
                           {title.length}/200
                         </div>
                       </div>
@@ -287,7 +290,7 @@ const CreatePost = () => {
                           }`}
                           placeholder="Write your post content here. Be detailed and engaging..."
                         />
-                        <div className="absolute right-3 bottom-3 text-sm text-gray-400 flex items-center gap-4">
+                        <div className="absolute right-3 bottom-3 text-sm text-gray-400 dark:text-gray-500 flex items-center gap-4">
                           <span className="flex items-center gap-1">
                             <Hash className="h-3 w-3" />
                             {wordCount} words

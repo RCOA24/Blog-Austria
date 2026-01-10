@@ -6,6 +6,7 @@ export interface Post {
   title: string;
   content: string;
   user_id: string;
+  author_name?: string;
 }
 
 interface BlogsState {

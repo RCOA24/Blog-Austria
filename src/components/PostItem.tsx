@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import supabase from '../supabaseClient';
 import { deletePost, type Post } from '../features/blogs/blogsSlice';
-import { Calendar, Edit2, Trash2 } from 'lucide-react';
+import { Calendar, Edit2, Trash2, User } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 interface PostItemProps {
@@ -99,6 +99,14 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
               })}
             </time>
           </div>
+          {post.author_name && (
+            <div className="flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" />
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {post.author_name}
+              </span>
+            </div>
+          )}
         </div>
 
         {isAuthor && (
