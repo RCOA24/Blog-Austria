@@ -107,8 +107,8 @@ const BlogList = () => {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
-              <PostItem key={post.id} post={post} />
+            {posts.map((post, index) => (
+              <PostItem key={post.id} post={post} priority={index === 0} />
             ))}
           </div>
         )}

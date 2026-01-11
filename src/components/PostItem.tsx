@@ -8,9 +8,10 @@ import { blogService } from '../services/blogService';
 
 interface PostItemProps {
   post: Post;
+  priority?: boolean;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post }) => {
+const PostItem: React.FC<PostItemProps> = ({ post, priority = false }) => {
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -97,11 +98,18 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
       className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full hover:-translate-y-1"
     >
       {coverImage && (
-        <div 
-          className="h-48 w-full bg-cover bg-center cursor-pointer border-b border-gray-200 dark:border-gray-700"
-          style={{ backgroundImage: `url(${coverImage})` }}
-          onClick={() => navigate(`/post/${post.id}`)}
-        />
+        <div className="h-48 w-full border-b border-gray-200 dark:border-gray-700 overflow-hidden relative bg-gray-100 dark:bg-gray-700">
+          <img 
+            src={coverImage} 
+            alt={post.title}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            width={600}
+            height={400} 
+            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 cursor-pointer"
+            onClick={() => navigate(`/post/${post.id}`)}
+          />
+        </div>
       )}
 
       <div className="p-6 flex-1 cursor-pointer" onClick={() => navigate(`/post/${post.id}`)}>
