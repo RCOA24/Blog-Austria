@@ -114,18 +114,17 @@ const BlogList = () => {
         )}
       </div>
 
-      <footer className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-gray-600 dark:text-gray-300 text-center sm:text-left">
-          {/* compute visible range */}
+      <footer className="flex flex-col items-center justify-between gap-6 py-6 border-t border-gray-100 dark:border-gray-800 mt-8">
+        <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
           Showing {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, (totalPages || 1) * pageSize)} of {(totalPages || 1) * pageSize}
         </div>
 
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setPage(1)}
             disabled={page === 1}
             aria-label="First page"
-            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+            className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             First
           </button>
@@ -134,27 +133,29 @@ const BlogList = () => {
             onClick={handlePrevious}
             disabled={page === 1}
             aria-label="Previous page"
-            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 flex items-center gap-2"
+            className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all shadow-sm"
           >
-            <ChevronLeft /> Prev
+            <ChevronLeft className="w-4 h-4" /> Prev
           </button>
 
-          <div className="text-sm text-gray-700 dark:text-gray-200">Page {page} of {totalPages}</div>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 px-4 min-w-[70px] text-center">
+             Page {page} of {totalPages}
+          </span>
 
           <button
             onClick={handleNext}
             disabled={page === totalPages}
             aria-label="Next page"
-            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 flex items-center gap-2"
+            className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 transition-all shadow-sm"
           >
-            Next <ChevronRight />
+            Next <ChevronRight className="w-4 h-4" />
           </button>
 
           <button
             onClick={() => setPage(totalPages)}
             disabled={page === totalPages}
             aria-label="Last page"
-            className="px-3 py-2 rounded-md border bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50"
+            className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             Last
           </button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import { deletePost, type Post } from '../features/blogs/blogsSlice';
@@ -40,7 +40,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, priority = false }) => {
     return { coverImage, plainText };
   };
 
-  const { coverImage, plainText } = processContent(post.content || '');
+  const { coverImage, plainText } = useMemo(() => processContent(post.content || ''), [post.content]);
 
   const handleDelete = () => {
     toast(
@@ -104,6 +104,7 @@ const PostItem: React.FC<PostItemProps> = ({ post, priority = false }) => {
             alt={post.title}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
+            decoding="async"
             width={600}
             height={400} 
             className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500 cursor-pointer"
