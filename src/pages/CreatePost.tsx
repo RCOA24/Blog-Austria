@@ -115,13 +115,10 @@ const CreatePost = () => {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      const username = user.user_metadata?.username || user.email?.split('@')[0] || 'Anonymous';
-
       const resultAction = await dispatch(createPost({
         title: title.trim(),
         content: content.trim(),
         user_id: user.id,
-        author_name: username
       }));
 
       if (createPost.fulfilled.match(resultAction)) {

@@ -56,7 +56,7 @@ export const fetchPostById = createAsyncThunk(
 
 export const createPost = createAsyncThunk(
   'blogs/createPost',
-  async (post: { title: string; content: string; user_id: string; author_name: string }, { rejectWithValue }) => {
+  async (post: { title: string; content: string; user_id: string }, { rejectWithValue }) => {
     try {
       return await blogService.createPost(post);
     } catch (error: unknown) {

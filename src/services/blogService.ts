@@ -47,7 +47,7 @@ export const blogService = {
     return data as Post;
   },
 
-  async createPost(post: { title: string; content: string; user_id: string; author_name: string }) {
+  async createPost(post: { title: string; content: string; user_id: string }) {
     const { data, error } = await supabase
       .from('posts')
       .insert([post])
