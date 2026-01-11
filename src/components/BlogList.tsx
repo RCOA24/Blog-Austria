@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import { fetchPosts } from '../features/blogs/blogsSlice';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -8,25 +9,45 @@ const DEFAULT_PAGE_SIZE = 6;
 
 const BlogList = () => {
   const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   // Select specific fields to minimize re-renders
   const posts = useAppSelector((s) => s.blogs.posts);
   const loading = useAppSelector((s) => s.blogs.loading);
   const totalPages = useAppSelector((s) => s.blogs.totalPages);
 
-  const [page, setPage] = useState(1);
+  const page = parseInt(searchParams.get('page') || '1');
+  const query = searchParams.get('q') || '';
+  const sortDesc = searchParams.get('sort') !== 'asc'; // default to true (desc) unless 'asc'
+
+  // Local state for pageSize, or simple param? Let's keep simpler local for now or param
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [query, setQuery] = useState('');
-  const [sortDesc, setSortDesc] = useState(true);
 
   useEffect(() => {
     dispatch(fetchPosts({ page, pageSize, query, sortDesc }));
   }, [dispatch, page, pageSize, query, sortDesc]);
 
-  // reset page when pageSize or query changes
-  useEffect(() => setPage(1), [pageSize, query]);
+  const updateParams = (updates: Partial<{ page: string; q: string; sort: string }>) => {
+      const newParams = new URLSearchParams(searchParams);
+      if (updates.page) newParams.set('page', updates.page);
+      if (updates.q !== undefined) {
+          if (updates.q) newParams.set('q', updates.q);
+          else newParams.delete('q');
+          // Reset page on new query
+          newParams.set('page', '1');
+      }
+      if (updates.sort) newParams.set('sort', updates.sort);
+      setSearchParams(newParams);
+  };
 
-  const handlePrevious = () => setPage((p) => Math.max(1, p - 1));
-  const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
+  const handlePrevious = () => {
+      const newPage = Math.max(1, page - 1);
+      updateParams({ page: newPage.toString() });
+  };
+  const handleNext = () => {
+      const newPage = Math.min(totalPages, page + 1);
+      updateParams({ page: newPage.toString() });
+  };
 
   return (
     <section className="space-y-6">
@@ -36,7 +57,7 @@ const BlogList = () => {
           <input
             id="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => updateParams({ q: e.target.value })}
             placeholder="Search by title or content..."
             className="w-full sm:w-80 px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
@@ -44,7 +65,7 @@ const BlogList = () => {
           <select
             aria-label="Sort order"
             value={sortDesc ? 'desc' : 'asc'}
-            onChange={(e) => setSortDesc(e.target.value === 'desc')}
+            onChange={(e) => updateParams({ sort: e.target.value })}
             className="px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
           >
             <option value="desc">Newest</option>
@@ -57,7 +78,10 @@ const BlogList = () => {
           <select
             aria-label="Items per page"
             value={pageSize}
-            onChange={(e) => setPageSize(Number(e.target.value))}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              updateParams({ page: '1' });
+            }}
             className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer"
           >
             <option value={6}>6</option>
@@ -99,7 +123,7 @@ const BlogList = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setPage(1)}
+            onClick={() => updateParams({ page: '1' })}
             disabled={page === 1}
             aria-label="First page"
             className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
@@ -130,7 +154,7 @@ const BlogList = () => {
           </button>
 
           <button
-            onClick={() => setPage(totalPages)}
+            onClick={() => updateParams({ page: totalPages.toString() })}
             disabled={page === totalPages}
             aria-label="Last page"
             className="px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"

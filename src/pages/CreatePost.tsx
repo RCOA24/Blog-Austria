@@ -137,8 +137,11 @@ const CreatePost = () => {
            toast.error(msg);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating post:', err);
+      if (err instanceof Error) {
+        // ...
+      }
     } finally {
       setIsSubmitting(false);
     }

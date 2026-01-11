@@ -35,8 +35,9 @@ export const fetchPosts = createAsyncThunk(
   async (params: { page: number; pageSize: number; query?: string; sortDesc?: boolean }, { rejectWithValue }) => {
     try {
       return await blogService.getPosts(params);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -46,8 +47,9 @@ export const fetchPostById = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await blogService.getPostById(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -57,8 +59,9 @@ export const createPost = createAsyncThunk(
   async (post: { title: string; content: string; user_id: string; author_name: string }, { rejectWithValue }) => {
     try {
       return await blogService.createPost(post);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -68,8 +71,9 @@ export const updatePost = createAsyncThunk(
   async ({ id, updates }: { id: string; updates: { title: string; content: string } }, { rejectWithValue }) => {
     try {
       return await blogService.updatePost(id, updates);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -80,8 +84,9 @@ export const deletePost = createAsyncThunk(
     try {
       await blogService.deletePost(id);
       return id;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      return rejectWithValue(errorMessage);
     }
   }
 );

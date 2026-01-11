@@ -94,7 +94,7 @@ const EditPost = () => {
                 toast.error(msg);
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
              console.error(err);
         } finally {
             setIsSubmitting(false);
