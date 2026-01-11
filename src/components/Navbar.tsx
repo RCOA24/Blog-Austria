@@ -104,6 +104,8 @@ const Navbar = () => {
             <img 
               src="/SimplyStated.png" 
               alt="Simply Stated Logo" 
+              width="40"
+              height="40"
               className="w-10 h-10 rounded-lg object-contain shadow-sm" 
             />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">Simply Stated</span>

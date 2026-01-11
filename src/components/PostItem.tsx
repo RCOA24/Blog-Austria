@@ -11,7 +11,8 @@ interface PostItemProps {
   priority?: boolean;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ post, priority = false }) => {
+// Wrap in React.memo to prevent unnecessary re-renders when parent lists update but post data is unchanged
+const PostItem: React.FC<PostItemProps> = React.memo(({ post, priority = false }) => {
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -166,6 +167,6 @@ const PostItem: React.FC<PostItemProps> = ({ post, priority = false }) => {
       </div>
     </article>
   );
-};
+});
 
 export default PostItem;

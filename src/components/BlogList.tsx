@@ -11,7 +11,10 @@ const DEFAULT_PAGE_SIZE = 6;
 
 const BlogList = () => {
   const dispatch = useAppDispatch();
-  const { posts, loading,totalPages } = useAppSelector((s) => s.blogs);
+  // Select specific fields to minimize re-renders
+  const posts = useAppSelector((s) => s.blogs.posts);
+  const loading = useAppSelector((s) => s.blogs.loading);
+  const totalPages = useAppSelector((s) => s.blogs.totalPages);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
