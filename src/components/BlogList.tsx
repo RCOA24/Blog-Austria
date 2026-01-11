@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-// import supabase from '../supabaseClient';
-import { setPosts, setLoading, setError, setPagination } from '../features/blogs/blogsSlice';
+import { fetchPosts } from '../features/blogs/blogsSlice';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PostItem from './PostItem';
-
-import { blogService } from '../services/blogService';
 
 const DEFAULT_PAGE_SIZE = 6;
 
@@ -22,29 +19,7 @@ const BlogList = () => {
   const [sortDesc, setSortDesc] = useState(true);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      dispatch(setLoading(true));
-
-      try {
-        const { data, count } = await blogService.getPosts({
-            page, 
-            pageSize, 
-            query, 
-            sortDesc
-        });
-
-        dispatch(setPosts(data));
-        const total = count ?? (data ? data.length : 0);
-        dispatch(setPagination({ currentPage: page, totalPages: Math.max(1, Math.ceil(total / pageSize)) }));
-        
-      } catch (fetchErr: any) {
-        dispatch(setError(fetchErr.message || 'Failed to fetch posts'));
-      } finally {
-        dispatch(setLoading(false));
-      }
-    };
-
-    fetchPosts();
+    dispatch(fetchPosts({ page, pageSize, query, sortDesc }));
   }, [dispatch, page, pageSize, query, sortDesc]);
 
   // reset page when pageSize or query changes

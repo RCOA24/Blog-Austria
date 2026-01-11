@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { setLoading, setError, setUser } from '../features/auth/authSlice';
+import { registerUser } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle, UserPlus, Check, X, ArrowLeft, LogIn } from 'lucide-react';
-import { authService } from '../services/authService';
 
 const Register = () => {
   const [username, setUsername] = useState('');
@@ -19,6 +18,7 @@ const Register = () => {
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
+
 
   const validatePassword = (password: string) => {
     const errors = [];
@@ -75,24 +75,17 @@ const Register = () => {
       return;
     }
 
-    dispatch(setLoading(true));
-    dispatch(setError(null));
-
     try {
-      const { user } = await authService.register(email.trim(), password, username.trim());
+      const resultAction = await dispatch(registerUser({ email: email.trim(), password, username: username.trim() }));
 
-      if (user) {
-        dispatch(setUser(user));
+      if (registerUser.fulfilled.match(resultAction)) {
         toast.success(`Account created successfully! Welcome.`);
-        // Redirect to home since email confirmation is disabled per requirements
         navigate('/');
+      } else if (registerUser.rejected.match(resultAction)) {
+         // managed by state
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Registration failed';
-      dispatch(setError(errorMessage));
-      toast.error(errorMessage);
-    } finally {
-      dispatch(setLoading(false));
+        console.error('Registration error', err);
     }
   };
 

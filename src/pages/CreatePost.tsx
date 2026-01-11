@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-import { setLoading, setError } from '../features/blogs/blogsSlice';
+import { createPost } from '../features/blogs/blogsSlice';
 import { toast } from 'react-toastify';
 import { Save, Eye, EyeOff, FileText, Hash, Clock, AlertCircle, CheckCircle } from 'lucide-react';
-import { blogService } from '../services/blogService';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 
@@ -115,33 +114,33 @@ const CreatePost = () => {
     try {
       setIsSubmitting(true);
       setSubmitError(null);
-      dispatch(setLoading(true));
 
       const username = user.user_metadata?.username || user.email?.split('@')[0] || 'Anonymous';
 
-      await blogService.createPost({
+      const resultAction = await dispatch(createPost({
         title: title.trim(),
         content: content.trim(),
         user_id: user.id,
         author_name: username
-      });
+      }));
 
-      // Clear draft after successful publish
-      const draftKey = `blog-draft-${user.id}`;
-      localStorage.removeItem(draftKey);
+      if (createPost.fulfilled.match(resultAction)) {
+          // Clear draft after successful publish
+          const draftKey = `blog-draft-${user.id}`;
+          localStorage.removeItem(draftKey);
 
-      toast.success('Post created successfully!');
-      navigate('/');
+          toast.success('Post created successfully!');
+          navigate('/');
+      } else if (createPost.rejected.match(resultAction)) {
+           const msg = (resultAction.payload as string) || 'Failed to create post';
+           setSubmitError(msg);
+           toast.error(msg);
+      }
 
     } catch (err: any) {
       console.error('Error creating post:', err);
-      const msg = err.message || 'Failed to create post';
-      setSubmitError(msg);
-      dispatch(setError(err.message));
-      toast.error(msg);
     } finally {
       setIsSubmitting(false);
-      dispatch(setLoading(false));
     }
   };
 

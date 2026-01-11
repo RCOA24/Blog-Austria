@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAppSelector } from '../app/hooks';
-import { blogService } from '../services/blogService';
-import type { Post } from '../features/blogs/blogsSlice';
+import { useAppSelector, useAppDispatch } from '../app/hooks';
+import { fetchPostById, clearCurrentPost } from '../features/blogs/blogsSlice';
 import { Calendar, User, ArrowLeft, Edit2, Share2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import MDEditor from '@uiw/react-md-editor';
@@ -11,32 +10,22 @@ import '@uiw/react-md-editor/markdown-editor.css';
 const PostDetail = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
-    const [post, setPost] = useState<Post | null>(null);
-    const [loading, setLoading] = useState(true);
+    const post = useAppSelector((state) => state.blogs.currentPost);
+    const loading = useAppSelector((state) => state.blogs.loading);
 
     useEffect(() => {
-        const fetchPost = async () => {
-            if (!id) return;
-            try {
-                const data = await blogService.getPostById(id);
-                if (data) {
-                    setPost(data);
-                } else {
-                    toast.error('Post not found');
-                    navigate('/');
-                }
-            } catch (error) {
-                console.error('Error fetching post:', error);
-                toast.error('Failed to load post');
-                navigate('/');
-            } finally {
-                setLoading(false);
-            }
+        if (id) {
+            dispatch(fetchPostById(id)).unwrap().catch(() => {
+                 toast.error('Failed to load post');
+                 navigate('/');
+            });
+        }
+        return () => {
+            dispatch(clearCurrentPost());
         };
-
-        fetchPost();
-    }, [id, navigate]);
+    }, [id, navigate, dispatch]);
 
     const handleShare = () => {
         if (navigator.share) {

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-import { setLoading, setError } from '../features/blogs/blogsSlice';
+import { fetchPostById, updatePost, clearCurrentPost } from '../features/blogs/blogsSlice';
 import { toast } from 'react-toastify';
-import { blogService } from '../services/blogService';
 import { Save, Eye, EyeOff, FileText, Hash, AlertCircle, CheckCircle } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
@@ -13,53 +12,42 @@ const EditPost = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
+    const post = useAppSelector((state) => state.blogs.currentPost);
+    const loading = useAppSelector((state) => state.blogs.loading);
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [isPreview, setIsPreview] = useState(false);
-    const [isLoadingPost, setIsLoadingPost] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<{title?: string; content?: string}>({});
-    const [postAuthorId, setPostAuthorId] = useState<string | null>(null);
-
-    // Fetch post data - Only runs on mount or id change to prevent reset on tab switch
+    
+    // Fetch post data
     useEffect(() => {
-        const fetchPost = async () => {
-            if (!id) return;
-            setIsLoadingPost(true);
-            try {
-                const data = await blogService.getPostById(id);
-
-                if (data) {
-                    setTitle(data.title);
-                    setContent(data.content);
-                    setPostAuthorId(data.user_id);
-                } else {
-                    toast.error('Post not found');
-                    navigate('/');
-                }
-            } catch (error: any) {
-                 console.error(error);
-                 toast.error('Failed to load post.');
-                 navigate('/');
-            } finally {
-                setIsLoadingPost(false);
-            }
+        if (id) {
+             dispatch(fetchPostById(id));
+        }
+        return () => {
+            dispatch(clearCurrentPost());
         };
+    }, [id, dispatch]);
 
-        fetchPost();
-    }, [id, navigate]);
-
-    // Check authorization separately
+    // Populate form and Check authorization
     useEffect(() => {
-        if (!isLoadingPost && user && postAuthorId) {
-             if (postAuthorId !== user.id) {
+        if (post) {
+            // Only set if title/content are empty (first load) or it's a new post loaded
+            // But here we want to reset form when post loads. 
+            // We can compare ID or just strict sync. Since component unmounts clearCurrentPost handles reset.
+            // But if we navigate Edit -> Edit different ID without unmount, currentPost changes.
+            setTitle(post.title);
+            setContent(post.content);
+
+            if (user && post.user_id !== user.id) {
                 toast.error('You are not authorized to edit this post.');
                 navigate('/');
-             }
+            }
         }
-    }, [user, postAuthorId, isLoadingPost, navigate]);
+    }, [post, user, navigate]);
 
     const validateForm = () => {
         const errors: {title?: string; content?: string} = {};
@@ -94,26 +82,29 @@ const EditPost = () => {
         try {
             setIsSubmitting(true);
             setSubmitError(null);
-            dispatch(setLoading(true));
             
-            await blogService.updatePost(id, { title: title.trim(), content: content.trim() });
+            const resultAction = await dispatch(updatePost({ id, updates: { title: title.trim(), content: content.trim() } }));
+            
+            if (updatePost.fulfilled.match(resultAction)) {
+                toast.success('Post updated successfully');
+                navigate('/');
+            } else if (updatePost.rejected.match(resultAction)) {
+                const msg = (resultAction.payload as string) || 'Failed to update post';
+                setSubmitError(msg);
+                toast.error(msg);
+            }
 
-            toast.success('Post updated successfully');
-            navigate('/');
         } catch (err: any) {
-            dispatch(setError(err.message));
-            setSubmitError(err.message);
-            toast.error(err.message || 'Failed to update post');
+             console.error(err);
         } finally {
             setIsSubmitting(false);
-            dispatch(setLoading(false));
         }
     };
 
     const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
     const charCount = content.length;
 
-    if (isLoadingPost) {
+    if (loading && !post) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center">

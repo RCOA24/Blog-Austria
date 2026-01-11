@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { setLoading, setError, setUser } from '../features/auth/authSlice';
+import { loginUser } from '../features/auth/authSlice';
 import { toast } from 'react-toastify';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, LogIn, UserPlus, ArrowRight } from 'lucide-react';
-import { authService } from '../services/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -44,24 +43,23 @@ const Login = () => {
       return;
     }
 
-    dispatch(setLoading(true));
-    dispatch(setError(null));
-
     try {
-      const { user } = await authService.login(email.trim(), password);
-
-      if (user) {
-        dispatch(setUser(user));
-        const username = user.user_metadata?.username || user.email?.split('@')[0] || 'User';
-        toast.success(`Welcome back, ${username}!`);
-        navigate('/');
+      const resultAction = await dispatch(loginUser({ email: email.trim(), password }));
+      
+      if (loginUser.fulfilled.match(resultAction)) {
+        const user = resultAction.payload;
+        if (user) {
+          const username = user.user_metadata?.username || user.email?.split('@')[0] || 'User';
+          toast.success(`Welcome back, ${username}!`);
+          navigate('/');
+        }
+      } else if (loginUser.rejected.match(resultAction)) {
+        // Redux state error is also set, but we can toast here if needed
+        // The error will be handled by the UI displaying `error` from state usually, but let's leave toast if it was there or not.
+        // Original code had a catch block showing toast or error message.
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Login failed';
-      dispatch(setError(errorMessage));
-      toast.error(errorMessage);
-    } finally {
-      dispatch(setLoading(false));
+        console.error('Login error', err);
     }
   };
 

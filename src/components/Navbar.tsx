@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
-import { logout } from '../features/auth/authSlice';
+import { logoutUser, resetAuth } from '../features/auth/authSlice';
 import { authService } from '../services/authService';
 import { Sun, Moon, LogOut, PenSquare, User as UserIcon, UserX, ChevronDown } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -39,8 +39,7 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
-    await authService.logout();
-    dispatch(logout());
+    await dispatch(logoutUser());
     toast.info('Logged out successfully');
     navigate('/login');
   };
@@ -71,7 +70,7 @@ const Navbar = () => {
                   // Call Service to delete user and their data
                   await authService.deleteAccount();
                   
-                  dispatch(logout());
+                  dispatch(resetAuth());
                   toast.success('Account deleted successfully');
                   navigate('/register');
                 } catch (error: any) {
