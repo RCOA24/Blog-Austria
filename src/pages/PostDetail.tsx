@@ -83,7 +83,7 @@ const PostDetail = () => {
             <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Navigation Back */}
                 <button 
-                    onClick={() => navigate(-1)}
+                    onClick={() => navigate('/')}
                     className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 mb-8 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4 mr-2" />
