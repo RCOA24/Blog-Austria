@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import { fetchPostById, updatePost, clearCurrentPost } from '../features/blogs/blogsSlice';
+import { blogService } from '../services/blogService';
 import { toast } from 'react-toastify';
-import { Save, Eye, EyeOff, FileText, Hash, AlertCircle, CheckCircle } from 'lucide-react';
+import { Save, Eye, EyeOff, FileText, Hash, AlertCircle, CheckCircle, Image as ImageIcon, X, Trash2 } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 
@@ -17,11 +18,19 @@ const EditPost = () => {
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+    const [newImage, setNewImage] = useState<File | null>(null);
+    const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
+    const [isImageRemoved, setIsImageRemoved] = useState(false);
+    
     const [isPreview, setIsPreview] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<{title?: string; content?: string}>({});
     
+    // Track initialized post ID to prevent overwriting user edits on re-renders
+    const initializedRef = React.useRef<string | null>(null);
+
     // Fetch post data
     useEffect(() => {
         if (id) {
@@ -29,18 +38,30 @@ const EditPost = () => {
         }
         return () => {
             dispatch(clearCurrentPost());
+            initializedRef.current = null;
         };
     }, [id, dispatch]);
 
+    // Clean up object URLs to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (newImagePreview) {
+                URL.revokeObjectURL(newImagePreview);
+            }
+        };
+    }, [newImagePreview]);
+
     // Populate form and Check authorization
     useEffect(() => {
-        if (post) {
-            // Only set if title/content are empty (first load) or it's a new post loaded
-            // But here we want to reset form when post loads. 
-            // We can compare ID or just strict sync. Since component unmounts clearCurrentPost handles reset.
-            // But if we navigate Edit -> Edit different ID without unmount, currentPost changes.
+        if (post && post.id !== initializedRef.current) {
             setTitle(post.title);
             setContent(post.content);
+            setCurrentImageUrl(post.image_url || null);
+            setNewImage(null);
+            setNewImagePreview(null);
+            setIsImageRemoved(false);
+            
+            initializedRef.current = post.id;
 
             if (user && post.user_id !== user.id) {
                 toast.error('You are not authorized to edit this post.');
@@ -70,8 +91,26 @@ const EditPost = () => {
         return Object.keys(errors).length === 0;
     };
 
+    const handleContentImageUpload = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            toast.info('Uploading image...', { autoClose: false, toastId: 'uploading' });
+            const url = await blogService.uploadImage(file);
+            toast.dismiss('uploading');
+            toast.success('Image uploaded!');
+            setContent(prev => prev + `\n![Image](${url})\n`);
+        } catch (error) {
+            toast.dismiss('uploading');
+            toast.error('Failed to upload image');
+            console.error(error);
+        }
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
         if (!user || !id) return;
 
         if (!validateForm()) {
@@ -82,8 +121,32 @@ const EditPost = () => {
         try {
             setIsSubmitting(true);
             setSubmitError(null);
+
+            let imageUrlToUpdate = undefined; 
+
+            if (isImageRemoved) {
+                 imageUrlToUpdate = null; 
+            } else if (newImage) {
+                try {
+                   imageUrlToUpdate = await blogService.uploadImage(newImage);
+                } catch (err) {
+                    toast.error('Failed to upload new image. Changes preserved without image update.');
+                    console.error(err);
+                    setIsSubmitting(false); 
+                    return; 
+                }
+            }
             
-            const resultAction = await dispatch(updatePost({ id, updates: { title: title.trim(), content: content.trim() } }));
+            const updates: { title?: string; content?: string; image_url?: string } = {
+                 title: title.trim(),
+                 content: content.trim()
+            };
+            
+            if (isImageRemoved || newImage) {
+                updates.image_url = (imageUrlToUpdate as unknown) as string; 
+            }
+
+            const resultAction = await dispatch(updatePost({ id, updates }));
             
             if (updatePost.fulfilled.match(resultAction)) {
                 toast.success('Post updated successfully');
@@ -96,6 +159,7 @@ const EditPost = () => {
 
         } catch (err: unknown) {
              console.error(err);
+             toast.error('An unexpected error occurred');
         } finally {
             setIsSubmitting(false);
         }
@@ -201,11 +265,105 @@ const EditPost = () => {
                                             )}
                                         </div>
 
+                                        {/* Cover Image Field */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Cover Image
+                                            </label>
+                                            <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                                                {/* Logic for displaying image area */}
+                                                {(newImagePreview || (currentImageUrl && !isImageRemoved)) ? (
+                                                    <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden group">
+                                                        <img 
+                                                            src={newImagePreview || currentImageUrl || ''} 
+                                                            alt="Post cover" 
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                                            <label className="cursor-pointer p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors" title="Change Image">
+                                                                <ImageIcon className="h-5 w-5" />
+                                                                <input 
+                                                                    type="file" 
+                                                                    accept="image/*"
+                                                                    className="hidden"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) {
+                                                                            setNewImage(file);
+                                                                            setNewImagePreview(URL.createObjectURL(file));
+                                                                            setIsImageRemoved(false);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (newImage) {
+                                                                        // Cancel new image upload
+                                                                        setNewImage(null);
+                                                                        setNewImagePreview(null);
+                                                                        // If we had an old one, restoration depends on !isImageRemoved
+                                                                        // If we just selected new over old, we revert to old.
+                                                                    } else {
+                                                                        // Removing existing image
+                                                                        setIsImageRemoved(true);
+                                                                    }
+                                                                }}
+                                                                className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                                                                title="Remove Image"
+                                                            >
+                                                                {newImage ? <X className="h-5 w-5" /> : <Trash2 className="h-5 w-5" />}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all relative">
+                                                        <input 
+                                                            type="file" 
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    setNewImage(file);
+                                                                    setNewImagePreview(URL.createObjectURL(file));
+                                                                    setIsImageRemoved(false);
+                                                                }
+                                                            }}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                        <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
+                                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                            {currentImageUrl ? 'Undo remove or upload new image' : 'Click or drag to upload cover image'}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {isImageRemoved && currentImageUrl && (
+                                                <p className="mt-2 text-sm text-orange-600 dark:text-orange-400 flex items-center gap-1">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    Existing image will be removed on save
+                                                </p>
+                                            )}
+                                        </div>
+
                                         {/* Content Field */}
                                         <div>
-                                            <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Post Content *
-                                            </label>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Post Content *
+                                                </label>
+                                                <label className="cursor-pointer text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                                                    <ImageIcon className="h-4 w-4" />
+                                                    <span>Insert Image</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={handleContentImageUpload}
+                                                    />
+                                                </label>
+                                            </div>
                                             <div className="relative">
                                                 <MDEditor
                                                     value={content}
@@ -273,6 +431,15 @@ const EditPost = () => {
                                 ) : (
                                     /* Preview Mode */
                                     <div className="space-y-6">
+                                        {(newImagePreview || (currentImageUrl && !isImageRemoved)) && (
+                                            <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden mb-6">
+                                                <img 
+                                                    src={newImagePreview || currentImageUrl || ''} 
+                                                    alt="Cover" 
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        )}
                                         {title && (
                                             <div>
                                                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">

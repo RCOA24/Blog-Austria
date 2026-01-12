@@ -22,9 +22,9 @@ const PostItem: React.FC<PostItemProps> = React.memo(({ post, priority = false }
 
   // Helper to extract first image and strip markdown
   const processContent = (content: string) => {
-    // Extract first image
+    // Extract first image if no cover image provided
     const imageMatch = content.match(/!\[.*?\]\((.*?)\)/);
-    const coverImage = imageMatch ? imageMatch[1] : null;
+    const extractedImage = imageMatch ? imageMatch[1] : null;
 
     // Strip markdown for preview text
     const plainText = content
@@ -38,10 +38,13 @@ const PostItem: React.FC<PostItemProps> = React.memo(({ post, priority = false }
       .replace(/>\s?/g, '') // Remove blockquotes
       .trim();
 
-    return { coverImage, plainText };
+    return { extractedImage, plainText };
   };
 
-  const { coverImage, plainText } = useMemo(() => processContent(post.content || ''), [post.content]);
+  const { extractedImage: markdownImage, plainText } = useMemo(() => processContent(post.content || ''), [post.content]);
+  
+  // Use explicitly uploaded cover image, fallback to markdown image
+  const displayImage = post.image_url || markdownImage;
 
   const handleDelete = () => {
     toast(
@@ -98,10 +101,10 @@ const PostItem: React.FC<PostItemProps> = React.memo(({ post, priority = false }
     <article 
       className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col h-full hover:-translate-y-1"
     >
-      {coverImage && (
+      {displayImage && (
         <div className="h-48 w-full border-b border-gray-200 dark:border-gray-700 overflow-hidden relative bg-gray-100 dark:bg-gray-700">
           <img 
-            src={coverImage} 
+            src={displayImage} 
             alt={post.title}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}

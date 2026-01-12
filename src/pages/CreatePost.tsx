@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../app/hooks';
 import { createPost } from '../features/blogs/blogsSlice';
+import { blogService } from '../services/blogService';
 import { toast } from 'react-toastify';
-import { Save, Eye, EyeOff, FileText, Hash, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Save, Eye, EyeOff, FileText, Hash, Clock, AlertCircle, CheckCircle, Image as ImageIcon, X } from 'lucide-react';
 import MDEditor from '@uiw/react-md-editor';
 import '@uiw/react-md-editor/markdown-editor.css';
 
@@ -16,6 +17,8 @@ interface Draft {
 const CreatePost = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [isPreview, setIsPreview] = useState(false);
   const [isAutosaving, setIsAutosaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -56,6 +59,8 @@ const CreatePost = () => {
         content,
         lastSaved: Date.now()
       };
+      // Note: We don't save the image in draft because File objects can't be stringified easily
+      // and we don't want to upload strictly for a draft.
       const draftKey = `blog-draft-${user.id}`;
       localStorage.setItem(draftKey, JSON.stringify(draft));
       setLastSaved(new Date());
@@ -113,12 +118,21 @@ const CreatePost = () => {
 
     try {
       setIsSubmitting(true);
-      setSubmitError(null);
+      let imageUrl = undefined;
+      if (coverImage) {
+        try {
+           imageUrl = await blogService.uploadImage(coverImage);
+        } catch (uploadErr) {
+           console.error('Image upload failed', uploadErr);
+           toast.error('Failed to upload image. Post will be created without it.');
+        }
+      }
 
       const resultAction = await dispatch(createPost({
         title: title.trim(),
         content: content.trim(),
         user_id: user.id,
+        image_url: imageUrl
       }));
 
       if (createPost.fulfilled.match(resultAction)) {
@@ -136,9 +150,6 @@ const CreatePost = () => {
 
     } catch (err: unknown) {
       console.error('Error creating post:', err);
-      if (err instanceof Error) {
-        // ...
-      }
     } finally {
       setIsSubmitting(false);
     }
@@ -259,6 +270,55 @@ const CreatePost = () => {
                           {validationErrors.title}
                         </p>
                       )}
+                    </div>
+
+                     {/* Cover Image Field */}
+                     <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Cover Image
+                      </label>
+                      <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                        {coverImagePreview ? (
+                          <div className="relative w-full h-48 sm:h-64 rounded-lg overflow-hidden group">
+                            <img 
+                              src={coverImagePreview} 
+                              alt="Unsaved cover" 
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCoverImage(null);
+                                  setCoverImagePreview(null);
+                                }}
+                                className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                              >
+                                <X className="h-5 w-5" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all relative">
+                             <input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    setCoverImage(file);
+                                    setCoverImagePreview(URL.createObjectURL(file));
+                                  }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                             />
+                             <ImageIcon className="h-8 w-8 text-gray-400 mb-2" />
+                             <p className="text-sm text-gray-500 dark:text-gray-400">
+                               Click or drag to upload cover image
+                             </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Content Field */}

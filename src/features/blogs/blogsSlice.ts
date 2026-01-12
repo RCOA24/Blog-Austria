@@ -8,6 +8,7 @@ export interface Post {
   content: string;
   user_id: string;
   author_name?: string;
+  image_url?: string;
 }
 
 interface BlogsState {
@@ -56,7 +57,7 @@ export const fetchPostById = createAsyncThunk(
 
 export const createPost = createAsyncThunk(
   'blogs/createPost',
-  async (post: { title: string; content: string; user_id: string }, { rejectWithValue }) => {
+  async (post: { title: string; content: string; user_id: string; image_url?: string }, { rejectWithValue }) => {
     try {
       return await blogService.createPost(post);
     } catch (error: unknown) {
@@ -68,7 +69,7 @@ export const createPost = createAsyncThunk(
 
 export const updatePost = createAsyncThunk(
   'blogs/updatePost',
-  async ({ id, updates }: { id: string; updates: { title: string; content: string } }, { rejectWithValue }) => {
+  async ({ id, updates }: { id: string; updates: { title?: string; content?: string; image_url?: string } }, { rejectWithValue }) => {
     try {
       return await blogService.updatePost(id, updates);
     } catch (error: unknown) {

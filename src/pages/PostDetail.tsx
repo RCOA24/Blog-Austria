@@ -27,16 +27,42 @@ const PostDetail = () => {
         };
     }, [id, navigate, dispatch]);
 
-    const handleShare = () => {
+    const handleShare = async () => {
+        const url = window.location.href;
+        
         if (navigator.share) {
-            navigator.share({
-                title: post?.title,
-                text: 'Check out this post on Simply Stated!',
-                url: window.location.href,
-            }).catch(console.error);
+            try {
+                await navigator.share({
+                    title: post?.title,
+                    text: 'Check out this post on Simply Stated!',
+                    url: url,
+                });
+            } catch (err) {
+                console.error('Share failed:', err);
+            }
         } else {
-            navigator.clipboard.writeText(window.location.href);
-            toast.info('Link copied to clipboard!');
+            try {
+                await navigator.clipboard.writeText(url);
+                toast.info('Link copied to clipboard!');
+            } catch (err) {
+                console.error('Clipboard API failed:', err);
+                // Fallback for non-secure contexts
+                try {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-9999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    toast.info('Link copied to clipboard!');
+                } catch (fallbackErr) {
+                    console.error('Fallback copy failed:', fallbackErr);
+                    toast.error('Could not copy link');
+                }
+            }
         }
     };
 
@@ -111,6 +137,17 @@ const PostDetail = () => {
                         </div>
                     </div>
                 </header>
+
+                {/* Cover Image */}
+                {post.image_url && (
+                    <div className="mb-8 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
+                        <img 
+                            src={post.image_url} 
+                            alt={post.title} 
+                            className="w-full h-auto object-cover max-h-[500px]"
+                        />
+                    </div>
+                )}
 
                 {/* Article Content */}
                 <div data-color-mode="light" className="dark:hidden">

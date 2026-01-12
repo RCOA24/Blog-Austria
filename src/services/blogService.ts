@@ -47,7 +47,7 @@ export const blogService = {
     return data as Post;
   },
 
-  async createPost(post: { title: string; content: string; user_id: string }) {
+  async createPost(post: { title: string; content: string; user_id: string; image_url?: string }) {
     const { data, error } = await supabase
       .from('posts')
       .insert([post])
@@ -58,7 +58,7 @@ export const blogService = {
     return data as Post;
   },
 
-  async updatePost(id: string, updates: { title: string; content: string }) {
+  async updatePost(id: string, updates: { title?: string; content?: string; image_url?: string }) {
     const { data, error } = await supabase
       .from('posts')
       .update(updates)
@@ -68,6 +68,26 @@ export const blogService = {
 
     if (error) throw error;
     return data as Post;
+  },
+
+  async uploadImage(file: File): Promise<string> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('blog-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('blog-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   },
 
   async deletePost(id: string) {
