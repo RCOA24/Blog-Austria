@@ -101,6 +101,23 @@ const CreatePost = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const handleContentImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+        toast.info('Uploading image...', { autoClose: false, toastId: 'uploading' });
+        const url = await blogService.uploadImage(file);
+        toast.dismiss('uploading');
+        toast.success('Image uploaded!');
+        setContent(prev => prev + `\n![Image](${url})\n`);
+    } catch (error) {
+        toast.dismiss('uploading');
+        toast.error('Failed to upload image');
+        console.error(error);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -323,9 +340,21 @@ const CreatePost = () => {
 
                     {/* Content Field */}
                     <div>
-                      <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Post Content *
-                      </label>
+                      <div className="flex justify-between items-center mb-2">
+                        <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Post Content *
+                        </label>
+                        <label className="cursor-pointer text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-1">
+                          <ImageIcon className="h-4 w-4" />
+                          <span>Insert Image</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleContentImageUpload}
+                          />
+                        </label>
+                      </div>
                       <div className="relative">
                         <MDEditor
                           value={content}
