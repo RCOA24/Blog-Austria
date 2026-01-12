@@ -11,7 +11,7 @@ const EditPost = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const { user } = useAppSelector((state) => state.auth);
+    const { user } = useAppSelector((state: any) => state.auth);
     const post = useAppSelector((state) => state.blogs.currentPost);
     const loading = useAppSelector((state) => state.blogs.loading);
 
